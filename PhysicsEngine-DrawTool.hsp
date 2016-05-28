@@ -1,27 +1,30 @@
 #include "obaq.as"
 
 //画面設定*************************************
-physicsWidth=1500.0
-physicsHeight=750.0
+physicsWidth=750.0	// 物理演算画面サイズ
+physicsHeight=375.0	// 
+pictureWidth=1500.0	// 絵画画面サイズ
+pictureHeight=600.0	// 
+paletSize=300		// 喜怒哀楽画面サイズ
 // 絵画画面
-bgscr 0,physicsWidth/2,physicsHeight/2,,600,780
+bgscr 0,pictureWidth,pictureHeight,,0,0
+;screen 0,,pictureWidth,pictureHeight,,0,0
 cls 4
 title "picture"
-line physicsWidth/4,physicsHeight/4,physicsWidth/4,physicsHeight/4
+line pictureWidth/2,pictureHeight/2,pictureWidth/2,pictureHeight/2
 // 物理演算画面
-bgscr 1,physicsWidth,physicsHeight,,0,0
-;screen 1,physicsWidth,physicsHeight,,0,0
+bgscr 1,physicsWidth,physicsHeight,,0,pictureHeight
+;screen 1,physicsWidth,physicsHeight,,0,pictureHeight
 cls 4
 title "drawing"
-
 // 喜怒哀楽パレット
-kidox=400:kidoy=400
-bgscr 2,800,800,,physicsWidth,0
+kidox=paletSize/2:kidoy=paletSize/2
+bgscr 2,paletSize,paletSize,,pictureWidth,50
 #uselib "gdi32" 
 #cfunc CreateEllipticRgn "CreateEllipticRgn" int, int, int, int
 #uselib "user32"
 #func SetWindowRgn "SetWindowRgn" int, int, int
-hRegion = CreateEllipticRgn (0, 0, 800, 800)
+hRegion = CreateEllipticRgn (0, 0, paletSize, paletSize)
 SetWindowRgn hwnd, hRegion, 1
 gsel 1
 //*********************************************
@@ -32,10 +35,10 @@ qreset
 // オブジェクトの追加・設定********************
 randomize
 // 筆用オブジェクト
-qaddpoly brush,50,physicsWidth/8,physicsHeight/8,,30,30,,,,2
+qaddpoly brush,50,physicsWidth/8,physicsHeight/8,,10,10,,,,2
 qinertia brush,,0
 // モブ用オブジェクト
-num=50
+num=40
 for i,0,2000,1
 	if num==0:_break
 	qaddpoly obj,rnd(5)+3,rnd(physicsWidth/4),rnd(physicsWidth/4),,rnd(5)+5,rnd(5)+5,,,,1
@@ -58,11 +61,11 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 		// モブに当たった場所に円を描画
 		gosub *circledraw
 	loop
-	qgetpos brush,myx,myy,myang
 	// 筆の軌跡
+	qgetpos brush,myx,myy,myang
 	gsel 0
 	color rnd(256),rnd(256),rnd(256)
-	line myx*2,myy*2
+	line myx*(pictureWidth/physicsWidth)*4,myy*(pictureHeight/physicsHeight)*4
 	gsel 1
 	// 筆の移動
 	stick key,15
@@ -88,9 +91,8 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 
 *circledraw
 	gsel 0
-;	color r-(rnd(10)-5),g-(rnd(10)-5),b-(rnd(10)-5)
 	color r,g,b
-	circle colx*2-10,coly*2-10,colx*2+10,coly*2+10,0
+	circle colx*(pictureWidth/physicsWidth)*4-10,coly*(pictureHeight/physicsHeight)*4-10,colx*(pictureWidth/physicsWidth)*4+10,coly*(pictureHeight/physicsHeight)*4+10,0
 	gsel 1
 	return
 
@@ -104,62 +106,61 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	if s:kidoy+=5
 	if a:kidox-=5
 	if d:kidox+=5
-	if sqrt((kidox-400)*(kidox-400)+(kidoy-400)*(kidoy-400))>400{
-		kidoy=400
-		kidox=400
+	if sqrt((kidox-paletSize/2)*(kidox-paletSize/2)+(kidoy-paletSize/2)*(kidoy-paletSize/2))>paletSize/2{
+		kidoy=paletSize/2
+		kidox=paletSize/2
 	}
 	redraw 0
 	
-	dist=sqrt((kidox-400)*(kidox-400)+(kidoy-400)*(kidoy-400))	// 中心からの距離
-	distPer=1.0-(dist\400)/400	// 中心からの割合(0~1)
-	radi=atan(kidoy-400,kidox-400)	//角度
+	dist=sqrt((kidox-paletSize/2)*(kidox-paletSize/2)+(kidoy-paletSize/2)*(kidoy-paletSize/2))	// 中心からの距離
+	distPer=1.0-(dist\(paletSize/2))/(paletSize/2)	// 中心からの割合(0~1)
+	radi=atan(kidoy-paletSize/2,kidox-paletSize/2)	//角度
 	
 	// 左上
-	if kidox<=400 && kidoy<=400{
+	if kidox<=paletSize/2 && kidoy<=paletSize/2{
 		r=-255.0*sin(radi)+(255.0+255.0*sin(radi))*distPer
 		g=255.0
 		b=255.0*distPer
 	}
 	// 右下
-	if kidox>=400 && kidoy>=400{
+	if kidox>=paletSize/2 && kidoy>=paletSize/2{
 		r=255.0*cos(radi)+(255.0-255.0*cos(radi))*distPer
 		g=255.0*distPer
 		b=255.0*sin(radi)+(255.0-255.0*sin(radi))*distPer
 	}
 	// 右上
-	if kidox>400 && kidoy<400{
+	if kidox>paletSize/2 && kidoy<paletSize/2{
 		r=255.0
 		g=-255.0*sin(radi)+(255.0+255.0*sin(radi))*distPer
 		b=255.0*distPer
 	}
 	// 左下
-	if kidox<400 && kidoy>400{
+	if kidox<paletSize/2 && kidoy>paletSize/2{
 		r=255.0*distPer
 		g=-255.0*cos(radi)+(255.0+255.0*cos(radi))*distPer
 		b=255.0*sin(radi)+(255.0-255.0*sin(radi))*distPer
 	}
-
+	
 	title str(r)+","+str(g)+","+str(b)
 	color r,g,b
 	redraw 0
 	boxf
 
-
 	color
-	circle 0,0,800,800,0
+	circle 0,0,paletSize,paletSize,0
 	circle kidox-20,kidoy-20,kidox+20,kidoy+20
-	line 0,400,800,400
-	line 400,0,400,800
+	line 0,paletSize/2,paletSize,paletSize/2
+	line paletSize/2,0,paletSize/2,paletSize
 	font "meiryo",30
-	pos 0,400
+	pos 0,paletSize/2
 	mes "楽"
-	pos 400-30,800-40
+	pos paletSize/2-30,paletSize-40
 	mes "哀"
-	pos 800-40,400
+	pos paletSize-40,paletSize/2
 	mes "怒"
-	pos 400-30,0
+	pos paletSize/2-30,0
 	mes "喜"
-	pos 400,400
+	pos paletSize/2,paletSize/2
 	mes "無"
 	redraw 1
 	return
