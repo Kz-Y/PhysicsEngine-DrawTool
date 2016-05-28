@@ -1,0 +1,172 @@
+#include "obaq.as"
+
+//画面設定*************************************
+wdth=1500.0
+hght=750.0
+// 絵画画面
+
+bgscr 0,wdth/2,hght/2,,600,780
+cls 4
+title "picture"
+line wdth/4,hght/4,wdth/4,hght/4
+// 物理演算画面
+bgscr 1,wdth,hght,,0,0
+;screen 1,wdth,hght,,0,0
+cls 4
+title "drawing"
+
+// 喜怒哀楽パレット
+kidox=400:kidoy=400
+bgscr 2,800,800,,wdth,0
+#uselib "gdi32" 
+#cfunc CreateEllipticRgn "CreateEllipticRgn" int, int, int, int
+#uselib "user32"
+#func SetWindowRgn "SetWindowRgn" int, int, int
+hRegion = CreateEllipticRgn (0, 0, 800, 800)
+SetWindowRgn hwnd, hRegion, 1
+gsel 1
+//*********************************************
+
+// obaqの初期化
+qreset
+
+// オブジェクトの追加・設定********************
+randomize
+// 筆用オブジェクト
+qaddpoly brush,50,wdth/8,hght/8,,30,30,,,,2
+qinertia brush,,0
+// モブ用オブジェクト
+num=50
+for i,0,2000,1
+	if num==0:_break
+	qaddpoly obj,rnd(5)+3,rnd(wdth/4),rnd(wdth/4),,rnd(5)+5,rnd(5)+5,,,,1
+	if obj>=0:num--
+	qweight obj,rnd(10)+1,rnd(10)+1
+	qinertia obj,,0
+next
+// 外枠
+qborder -wdth/8.0,-hght/8.0,wdth/8.0,hght/8
+//*********************************************
+*main
+	gsel 2
+	gosub *kidoairaku
+	gsel 1
+	// 筆に当たったオブジェクトの検出
+	qcollision brush
+	repeat
+		qgetcol obj,colx,coly
+		if obj<0:break
+		// モブに当たった場所に円を描画
+		gosub *circledraw
+	loop
+	qgetpos brush,myx,myy,myang
+	// 筆の軌跡
+	gsel 0
+	color rnd(256),rnd(256),rnd(256)
+	line myx*2,myy*2
+	gsel 1
+	// 筆の移動
+	stick key,15
+	if key&128 : end	// [ESC]キーで終了
+	speedx=0.0:speedy=0.0	// カーソルキーで操作
+	if key&1 : speedx-=0.05
+	if key&4 : speedx+=0.05
+	if key&2 : speedy-=0.05
+	if key&8 : speedy+=0.05
+	qspeed brush, speedx,speedy,0
+
+	redraw 0
+		// 背景初期化
+		color:boxf
+		// オブジェクトの更新
+		qexec
+		// オブジェクトの描画
+		qdraw 0
+	redraw 1
+	await 1
+	goto *main
+	
+
+*circledraw
+	gsel 0
+;	color r-(rnd(10)-5),g-(rnd(10)-5),b-(rnd(10)-5)
+	color r,g,b
+	circle colx*2-10,coly*2-10,colx*2+10,coly*2+10,0
+	gsel 1
+	return
+
+*kidoairaku
+	onclick gosub *mousepos
+	getkey w,87
+	getkey a,65
+	getkey s,83
+	getkey d,68
+	if w:kidoy-=5
+	if s:kidoy+=5
+	if a:kidox-=5
+	if d:kidox+=5
+	if sqrt((kidox-400)*(kidox-400)+(kidoy-400)*(kidoy-400))>400{
+		kidoy=400
+		kidox=400
+	}
+	redraw 0
+	
+	dist=sqrt((kidox-400)*(kidox-400)+(kidoy-400)*(kidoy-400))	// 中心からの距離
+	distPer=1.0-(dist\400)/400	// 中心からの割合(0~1)
+	radi=atan(kidoy-400,kidox-400)	//角度
+	
+	// 左上
+	if kidox<=400 && kidoy<=400{
+		r=-255.0*sin(radi)+(255.0+255.0*sin(radi))*distPer
+		g=255.0
+		b=255.0*distPer
+	}
+	// 右下
+	if kidox>=400 && kidoy>=400{
+		r=255.0*cos(radi)+(255.0-255.0*cos(radi))*distPer
+		g=255.0*distPer
+		b=255.0*sin(radi)+(255.0-255.0*sin(radi))*distPer
+	}
+	// 右上
+	if kidox>400 && kidoy<400{
+		r=255.0
+		g=-255.0*sin(radi)+(255.0+255.0*sin(radi))*distPer
+		b=255.0*distPer
+	}
+	// 左下
+	if kidox<400 && kidoy>400{
+		r=255.0*distPer
+		g=-255.0*cos(radi)+(255.0+255.0*cos(radi))*distPer
+		b=255.0*sin(radi)+(255.0-255.0*sin(radi))*distPer
+	}
+
+	title str(r)+","+str(g)+","+str(b)
+	color r,g,b
+	redraw 0
+	boxf
+
+
+	color
+	circle 0,0,800,800,0
+	circle kidox-20,kidoy-20,kidox+20,kidoy+20
+	line 0,400,800,400
+	line 400,0,400,800
+	font "meiryo",30
+	pos 0,400
+	mes "楽"
+	pos 400-30,800-40
+	mes "哀"
+	pos 800-40,400
+	mes "怒"
+	pos 400-30,0
+	mes "喜"
+	pos 400,400
+	mes "無"
+	redraw 1
+	return
+
+*mousepos
+	gsel 2
+	kidox=mousex
+	kidoy=mousey
+	return
