@@ -33,7 +33,6 @@ bgscr 3,settingsize,settingsize,,pictureWidth,paletSize+50
 
 brushper=100
 circlesize=50
-pu=1	// 1:pを前フレームで押してた,0:押してない
 gosub *settingDraw
 gsel 1
 //*********************************************
@@ -105,10 +104,7 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	if g:gosub *brushMinus
 	if y:gosub *circlesizePlus
 	if h:gosub *circlesizeMinus
-	if u{
-		if pu:gosub *brushmodeChange
-		pu=0
-	}else:pu=1
+	if u:gosub *brushmodeChange
 	if i:goto *reset
 	gsel 1
 	
@@ -230,33 +226,35 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	brushmode++
 	brushmode=brushmode\2
 	gosub *settingDraw
+	wait 50
 	return
 *settingDraw
 	gsel 3
 	redraw 0
 		color 255,255,255:boxf
 		color 0
-
 		pos 0,0
-		font "meiryo",30
+		font "msgothic",30
 		print "-(t)"
 		print "筆サイズ"+brushper
 		print "+(g)"
 		
-		pos 0,settingsize/2
+		pos 0,150
 		print "-(y)"
 		print "円サイズ"+circlesize
 		print "+(h)"
-		circle 50,300,50+circlesize*2,300+circlesize*2,0		
-		pos settingsize/2,0
-		print "筆モード"
-		circle settingsize/2,50,settingsize/2+50,100,brushmode
+		circle 100,100,100+circlesize*2,100+circlesize*2,0
 		
-		pos settingsize/2,settingsize/2
+		pos 200,0
+		print "筆"
+		circle 200,100,250,50,brushmode
+		
+		pos 200,200
 		print "reset(i)"
 		pos settingsize/2,settingsize/4*3
 		button gosub "save",*savepicture
 	redraw 1
+<<<<<<< HEAD
 	return
 *savepicture
 	dialog "bmp",17
@@ -264,3 +262,21 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	gsel 0
 	bmpsave refstr
 	end
+=======
+	/*
+	button gosub "-(t)",*brushPlus
+	print "筆サイズ"+brushper
+	button gosub "+(g)",*brushMinus
+	pos 100,0
+	button gosub "+(y)",*circlesizePlus
+	print "円サイズ"+circlesize
+	button gosub "-(h)",*circlesizeMinus
+	circle 100,100,100+circlesize*2,100+circlesize*2,0
+	pos 200,0
+	button gosub "筆(u)",*brushmodeChange
+	print brushmode
+	circle 200,100,250,50,brushmode
+	pos 300,0
+	button goto "reset(i)",*reset*/
+	return
+>>>>>>> parent of d619abe... 蠕ｮ隱ｿ謨ｴ
