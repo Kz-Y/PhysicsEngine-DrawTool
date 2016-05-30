@@ -254,5 +254,13 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 		
 		pos settingsize/2,settingsize/2
 		print "reset(i)"
+		pos settingsize/2,settingsize/4*3
+		button gosub "save",*savepicture
 	redraw 1
 	return
+*savepicture
+	dialog "bmp",17
+	if stat==0:return
+	gsel 0
+	bmpsave refstr
+	end
