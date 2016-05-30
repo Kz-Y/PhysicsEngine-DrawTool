@@ -26,6 +26,13 @@ bgscr 2,paletSize,paletSize,,pictureWidth,50
 #func SetWindowRgn "SetWindowRgn" int, int, int
 hRegion = CreateEllipticRgn (0, 0, paletSize, paletSize)
 SetWindowRgn hwnd, hRegion, 1
+// 筆調整画面
+settingsize=500
+bgscr 3,settingsize,settingsize,,pictureWidth,paletSize+50
+
+brushper=100
+circlesize=50
+gosub *settingDraw
 gsel 1
 //*********************************************
 
@@ -71,8 +78,8 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	color r,g,b
 	myx=myx*(pictureWidth/physicsWidth)*4
 	myy=myy*(pictureHeight/physicsHeight)*4
-	brushsize=sqrt(brushspeedx*brushspeedx+brushspeedy*brushspeedy)*100
-	circle myx-brushsize,myy-brushsize,myx+brushsize,myy+brushsize,0
+	brushsize=sqrt(brushspeedx*brushspeedx+brushspeedy*brushspeedy)*brushper
+	circle myx-brushsize,myy-brushsize,myx+brushsize,myy+brushsize,brushmode
 	gsel 1
 	// 筆の移動
 	stick key,15
@@ -92,6 +99,7 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 		// オブジェクトの描画
 		qdraw 1
 	redraw 1
+	
 	await 1
 	goto *main
 	
@@ -101,7 +109,6 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	color r,g,b
 	colx=colx*(pictureWidth/physicsWidth)*4
 	coly=coly*(pictureHeight/physicsHeight)*4
-	circlesize=rnd(50)
 	circle colx-circlesize,coly-circlesize,colx+circlesize,coly+circlesize,0
 	gsel 1
 	return
@@ -179,4 +186,44 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	gsel 2
 	kidox=mousex
 	kidoy=mousey
+	return
+	
+*brushPlus
+	brushper-=10
+	gosub *settingDraw	
+	return
+*brushMinus
+	brushper+=10
+	gosub *settingDraw
+	return
+
+*circlesizePlus
+	circlesize+=10
+	gosub *settingDraw
+	return
+*circlesizeMinus
+	circlesize-=10
+	gosub *settingDraw
+	return
+*brushmodeChange
+	brushmode++
+	brushmode=brushmode\2
+	gosub *settingDraw
+	return
+*settingDraw
+	gsel 3
+	cls
+	pos 0,0
+	button gosub "-",*brushPlus
+	print "筆サイズ"+brushper
+	button gosub "+",*brushMinus
+	pos 100,0
+	button gosub "+",*circlesizePlus
+	print "円サイズ"+circlesize
+	button gosub "-",*circlesizeMinus
+	circle 100,100,100+circlesize*2,100+circlesize*2,0
+	pos 200,0
+	button gosub "筆",*brushmodeChange
+	print brushmode
+	circle 200,100,250,50,brushmode
 	return
