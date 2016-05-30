@@ -4,7 +4,7 @@
 //画面設定*************************************
 physicsWidth=1000.0	// 物理演算画面サイズ
 physicsHeight=375.0	// 
-pictureWidth=1500.0	// 絵画画面サイズ
+pictureWidth=1200.0	// 絵画画面サイズ
 pictureHeight=600.0	// 
 paletSize=300		// 喜怒哀楽画面サイズ
 // 絵画画面
@@ -14,7 +14,7 @@ title "picture"
 line pictureWidth/2,pictureHeight/2,pictureWidth/2,pictureHeight/2
 // 物理演算画面
 bgscr 1,physicsWidth,physicsHeight,,0,pictureHeight
-cls 4
+color 50,50,50:boxf
 title "drawing"
 // 喜怒哀楽パレット
 kidox=paletSize/2:kidoy=paletSize/2
@@ -62,6 +62,7 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	gsel 2
 	gosub *kidoairaku
 	gsel 1
+	
 	// 筆に当たったオブジェクトの検出
 	qcollision brush
 	repeat
@@ -70,6 +71,8 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 		// モブに当たった場所に円を描画
 		gosub *circledraw
 	loop
+	// スペースキーを押しているときは描画しない
+	getkey drawflag,32
 	// 筆の軌跡
 	qgetpos brush,myx,myy,hoge
 	qgetspeed brush,brushspeedx,brushspeedy,hoge
@@ -78,7 +81,7 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	myx=myx*(pictureWidth/physicsWidth)*4
 	myy=myy*(pictureHeight/physicsHeight)*4
 	brushsize=sqrt(brushspeedx*brushspeedx+brushspeedy*brushspeedy)*brushper
-	circle myx-brushsize,myy-brushsize,myx+brushsize,myy+brushsize,brushmode
+	if drawflag==0:circle myx-brushsize,myy-brushsize,myx+brushsize,myy+brushsize,brushmode
 	gsel 1
 	// 筆の移動
 	stick key,15
@@ -112,6 +115,8 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	redraw 0
 		// 背景初期化
 		color:boxf
+		gsel 1
+		color 50,50,50:boxf
 		// オブジェクトの更新
 		qexec
 		// オブジェクトの描画
@@ -127,7 +132,7 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	color r,g,b
 	colx=colx*(pictureWidth/physicsWidth)*4
 	coly=coly*(pictureHeight/physicsHeight)*4
-	circle colx-circlesize,coly-circlesize,colx+circlesize,coly+circlesize,0
+	if drawflag==0:circle colx-circlesize,coly-circlesize,colx+circlesize,coly+circlesize,0
 	gsel 1
 	return
 
@@ -137,10 +142,10 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	getkey a,65
 	getkey s,83
 	getkey d,68
-	if w:kidoy-=3
-	if s:kidoy+=3
-	if a:kidox-=3
-	if d:kidox+=3
+	if w:kidoy-=1
+	if s:kidoy+=1
+	if a:kidox-=1
+	if d:kidox+=1
 	// パレットの選択オブジェクトの壁判定
 	if sqrt((kidox-paletSize/2)*(kidox-paletSize/2)+(kidoy-paletSize/2)*(kidoy-paletSize/2))>paletSize/2{
 		kidoy=paletSize/2
@@ -234,21 +239,21 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 
 		pos 0,0
 		font "meiryo",30
-		print "-(t)"
+		print "-[t]"
 		print "筆サイズ"+brushper
-		print "+(g)"
+		print "+[g]"
 		
 		pos 0,settingsize/2
-		print "-(y)"
+		print "-[y]"
 		print "円サイズ"+circlesize
-		print "+(h)"
+		print "+[h]"
 		circle 50,300,50+circlesize*2,300+circlesize*2,0		
 		pos settingsize/2,0
-		print "筆モード"
+		print "筆モード[u]"
 		circle settingsize/2,50,settingsize/2+50,100,brushmode
 		
 		pos settingsize/2,settingsize/2
-		print "reset(i)"
+		print "reset[i]"
 		pos settingsize/2,settingsize/4*3
 		button gosub "save",*savepicture
 	redraw 1
