@@ -1,7 +1,7 @@
 #include "obaq.as"
 
 //画面設定*************************************
-physicsWidth=750.0	// 物理演算画面サイズ
+physicsWidth=1000.0	// 物理演算画面サイズ
 physicsHeight=375.0	// 
 pictureWidth=1500.0	// 絵画画面サイズ
 pictureHeight=600.0	// 
@@ -37,14 +37,17 @@ randomize
 // 筆用オブジェクト
 qaddpoly brush,50,physicsWidth/8,physicsHeight/8,,10,10,,,,2
 qinertia brush,,0
+qweight brush,100
+qmat brush,mat_wire2,$000000,$FF0000
 // モブ用オブジェクト
-num=40
+num=20
 for i,0,2000,1
 	if num==0:_break
 	qaddpoly obj,rnd(5)+3,rnd(physicsWidth/4),rnd(physicsWidth/4),,rnd(5)+5,rnd(5)+5,,,,1
 	if obj>=0:num--
 	qweight obj,rnd(10)+1,rnd(10)+1
 	qinertia obj,,0
+	qmat obj,mat_wire2,$000000,$00FF00
 next
 // 外枠
 qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
@@ -62,19 +65,23 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 		gosub *circledraw
 	loop
 	// 筆の軌跡
-	qgetpos brush,myx,myy,myang
+	qgetpos brush,myx,myy,hoge
+	qgetspeed brush,brushspeedx,brushspeedy,hoge
 	gsel 0
-	color rnd(256),rnd(256),rnd(256)
-	line myx*(pictureWidth/physicsWidth)*4,myy*(pictureHeight/physicsHeight)*4
+	color r,g,b
+	myx=myx*(pictureWidth/physicsWidth)*4
+	myy=myy*(pictureHeight/physicsHeight)*4
+	brushsize=sqrt(brushspeedx*brushspeedx+brushspeedy*brushspeedy)*100
+	circle myx-brushsize,myy-brushsize,myx+brushsize,myy+brushsize,0
 	gsel 1
 	// 筆の移動
 	stick key,15
 	if key&128 : end	// [ESC]キーで終了
 	speedx=0.0:speedy=0.0	// カーソルキーで操作
-	if key&1 : speedx-=0.05
-	if key&4 : speedx+=0.05
-	if key&2 : speedy-=0.05
-	if key&8 : speedy+=0.05
+	if key&1 : speedx-=0.005
+	if key&4 : speedx+=0.005
+	if key&2 : speedy-=0.005
+	if key&8 : speedy+=0.005
 	qspeed brush, speedx,speedy,0
 
 	redraw 0
@@ -83,7 +90,7 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 		// オブジェクトの更新
 		qexec
 		// オブジェクトの描画
-		qdraw 0
+		qdraw 1
 	redraw 1
 	await 1
 	goto *main
@@ -92,7 +99,10 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 *circledraw
 	gsel 0
 	color r,g,b
-	circle colx*(pictureWidth/physicsWidth)*4-10,coly*(pictureHeight/physicsHeight)*4-10,colx*(pictureWidth/physicsWidth)*4+10,coly*(pictureHeight/physicsHeight)*4+10,0
+	colx=colx*(pictureWidth/physicsWidth)*4
+	coly=coly*(pictureHeight/physicsHeight)*4
+	circlesize=rnd(50)
+	circle colx-circlesize,coly-circlesize,colx+circlesize,coly+circlesize,0
 	gsel 1
 	return
 
@@ -102,16 +112,16 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 	getkey a,65
 	getkey s,83
 	getkey d,68
-	if w:kidoy-=5
-	if s:kidoy+=5
-	if a:kidox-=5
-	if d:kidox+=5
+	if w:kidoy-=3
+	if s:kidoy+=3
+	if a:kidox-=3
+	if d:kidox+=3
+	// パレットの選択オブジェクトの壁判定
 	if sqrt((kidox-paletSize/2)*(kidox-paletSize/2)+(kidoy-paletSize/2)*(kidoy-paletSize/2))>paletSize/2{
 		kidoy=paletSize/2
 		kidox=paletSize/2
 	}
-	redraw 0
-	
+	//色相環描画******************************************
 	dist=sqrt((kidox-paletSize/2)*(kidox-paletSize/2)+(kidoy-paletSize/2)*(kidoy-paletSize/2))	// 中心からの距離
 	distPer=1.0-(dist\(paletSize/2))/(paletSize/2)	// 中心からの割合(0~1)
 	radi=atan(kidoy-paletSize/2,kidox-paletSize/2)	//角度
@@ -141,27 +151,27 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 		b=255.0*sin(radi)+(255.0-255.0*sin(radi))*distPer
 	}
 	
-	title str(r)+","+str(g)+","+str(b)
+	;title str(r)+","+str(g)+","+str(b)
 	color r,g,b
 	redraw 0
-	boxf
-
-	color
-	circle 0,0,paletSize,paletSize,0
-	circle kidox-20,kidoy-20,kidox+20,kidoy+20
-	line 0,paletSize/2,paletSize,paletSize/2
-	line paletSize/2,0,paletSize/2,paletSize
-	font "meiryo",30
-	pos 0,paletSize/2
-	mes "楽"
-	pos paletSize/2-30,paletSize-40
-	mes "哀"
-	pos paletSize-40,paletSize/2
-	mes "怒"
-	pos paletSize/2-30,0
-	mes "喜"
-	pos paletSize/2,paletSize/2
-	mes "無"
+		boxf
+	
+		color
+		circle 0,0,paletSize,paletSize,0
+		circle kidox-20,kidoy-20,kidox+20,kidoy+20
+		line 0,paletSize/2,paletSize,paletSize/2
+		line paletSize/2,0,paletSize/2,paletSize
+		font "meiryo",30
+		pos 0,paletSize/2
+		mes "楽"
+		pos paletSize/2-30,paletSize-40
+		mes "哀"
+		pos paletSize-40,paletSize/2
+		mes "怒"
+		pos paletSize/2-30,0
+		mes "喜"
+		pos paletSize/2,paletSize/2
+		mes "無"
 	redraw 1
 	return
 
