@@ -9,13 +9,11 @@ pictureHeight=600.0	//
 paletSize=300		// 喜怒哀楽画面サイズ
 // 絵画画面
 bgscr 0,pictureWidth,pictureHeight,,0,0
-;screen 0,,pictureWidth,pictureHeight,,0,0
 cls 4
 title "picture"
 line pictureWidth/2,pictureHeight/2,pictureWidth/2,pictureHeight/2
 // 物理演算画面
 bgscr 1,physicsWidth,physicsHeight,,0,pictureHeight
-;screen 1,physicsWidth,physicsHeight,,0,pictureHeight
 cls 4
 title "drawing"
 // 喜怒哀楽パレット
@@ -30,10 +28,9 @@ SetWindowRgn hwnd, hRegion, 1
 // 筆調整画面
 settingsize=500
 bgscr 3,settingsize,settingsize,,pictureWidth,paletSize+50
-
 brushper=100
 circlesize=50
-pu=1	// 1:pを前フレームで押してた,0:押してない
+pu=1	// 1:[u]を前フレームで押してた,0:押してない
 gosub *settingDraw
 gsel 1
 //*********************************************
@@ -179,11 +176,9 @@ qborder -physicsWidth/8.0,-physicsHeight/8.0,physicsWidth/8.0,physicsHeight/8
 		b=255.0*sin(radi)+(255.0-255.0*sin(radi))*distPer
 	}
 	
-	;title str(r)+","+str(g)+","+str(b)
-	color r,g,b
 	redraw 0
+		color r,g,b
 		boxf
-	
 		color
 		circle 0,0,paletSize,paletSize,0
 		circle kidox-20,kidoy-20,kidox+20,kidoy+20
